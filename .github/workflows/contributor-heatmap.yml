@@ -1,0 +1,95 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Contributor Heatmap
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-map:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore geocode cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/fesod-contributors
+          key: geocode-cache-${{ github.run_id }}
+          restore-keys: |
+            geocode-cache-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tools/contributors-map/requirements.txt
+
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps chromium
+
+      - name: Generate contributor heatmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python tools/contributors-map/generate.py --output-dir dist/contributor-heatmap
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: contributor-heatmap
+          path: dist/contributor-heatmap
+          retention-days: 7
+
+      - name: Ensure release exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if ! gh release view contributor-heatmap >/dev/null 2>&1; then
+            gh release create contributor-heatmap \
+              --title "Contributor Heatmap" \
+              --notes "Auto-generated contributor heatmap asset"
+          else
+            gh release edit contributor-heatmap \
+              --title "Contributor Heatmap" \
+              --notes "Auto-generated contributor heatmap asset"
+          fi
+
+      - name: Upload release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release upload contributor-heatmap dist/contributor-heatmap/contributors-heatmap.png --clobber
+          gh release upload contributor-heatmap dist/contributor-heatmap/contributors.json --clobber
+          gh release upload contributor-heatmap dist/contributor-heatmap/summary.txt --clobber

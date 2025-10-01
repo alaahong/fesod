@@ -164,6 +164,13 @@ Thank you to all the people who already contributed to the Apache Fesod (Incubat
 
 > Note: Showing the first 100 contributors only due to GitHub image size limitations
 
+#### Global Heatmap
+
+![Global contributor heatmap](https://github.com/apache/fesod/releases/download/contributor-heatmap/contributors-heatmap.png)
+
+> The heatmap is refreshed automatically every Monday by the contributor heatmap workflow. Locations are inferred from
+> public GitHub profiles and may be approximate.
+
 ### Subscribe Mailing Lists
 
 Mail List is the most recognized form of communication in the Apache community. Contact us through the following mailing

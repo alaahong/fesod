@@ -1,0 +1,4 @@
+requests>=2.32.2
+geopy>=2.4.1
+playwright>=1.46.0
+pillow>=10.4.0
