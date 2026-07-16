@@ -76,6 +76,19 @@ class SheetFreezePanePropertyTest {
         Assertions.assertEquals(0, property.getTopRow());
     }
 
+    @Test
+    void build_usesDefaults_whenLeftmostColumnAndTopRowAreNegative() {
+        FreezePane annotation = NegativeValuesClass.class.getAnnotation(FreezePane.class);
+        SheetFreezePaneProperty property = SheetFreezePaneProperty.build(annotation);
+
+        Assertions.assertNotNull(property);
+        Assertions.assertEquals(2, property.getColSplit());
+        Assertions.assertEquals(3, property.getRowSplit());
+        // Negative values (other than the -1 sentinel) should fall back to the split values
+        Assertions.assertEquals(2, property.getLeftmostColumn());
+        Assertions.assertEquals(3, property.getTopRow());
+    }
+
     @FreezePane(colSplit = 2, rowSplit = 3)
     static class FreezePaneClass {}
 
@@ -87,4 +100,7 @@ class SheetFreezePanePropertyTest {
 
     @FreezePane(colSplit = 0, rowSplit = 0)
     static class ZeroSplitClass {}
+
+    @FreezePane(colSplit = 2, rowSplit = 3, leftmostColumn = -5, topRow = -10)
+    static class NegativeValuesClass {}
 }

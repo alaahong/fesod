@@ -68,7 +68,7 @@ public class SheetFreezePaneProperty {
     }
 
     private static Integer getOrDefault(Integer value, Integer defaultValue) {
-        if (value == -1) {
+        if (value == null || value < 0) {
             return defaultValue;
         }
         return value;
