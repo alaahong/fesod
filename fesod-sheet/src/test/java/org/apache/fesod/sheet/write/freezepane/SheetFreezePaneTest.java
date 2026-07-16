@@ -112,6 +112,22 @@ class SheetFreezePaneTest {
         private String str2;
     }
 
+    /**
+     * Model with negative leftmostColumn and topRow values.
+     * These should fall back to defaults (colSplit / rowSplit) instead of
+     * crashing with IllegalArgumentException in SheetFreezePaneStrategy.
+     */
+    @Getter
+    @Setter
+    @FreezePane(colSplit = 2, rowSplit = 3, leftmostColumn = -5, topRow = -10)
+    static class FreezePaneNegativeValuesData implements FreezePaneModel {
+        @ExcelProperty("Str 1")
+        private String str1;
+
+        @ExcelProperty("Str 2")
+        private String str2;
+    }
+
     @Getter
     @Setter
     static class NoFreezePaneData implements FreezePaneModel {
@@ -242,6 +258,23 @@ class SheetFreezePaneTest {
                 .sheet()
                 .doWrite(buildData(NoFreezePaneData.class, 5));
         assertFreezePane(file, 1, 1, 1, 1);
+    }
+
+    @Test
+    void should_useDefaultPanePositions_whenLeftmostAndTopRowAreNegative() throws Exception {
+        runUseDefaultPanePositionsWhenNegative(file07);
+        runUseDefaultPanePositionsWhenNegative(file03);
+    }
+
+    private void runUseDefaultPanePositionsWhenNegative(File file) throws Exception {
+        // With negative leftmostColumn(-5) and topRow(-10), the fix makes
+        // getOrDefault() fall back to colSplit(2) and rowSplit(3).
+        // Without the fix, SheetFreezePaneStrategy would throw IllegalArgumentException.
+        FesodSheet.write(file, FreezePaneNegativeValuesData.class)
+                .sheet()
+                .doWrite(buildData(FreezePaneNegativeValuesData.class, 5));
+        // leftmostColumn defaults to colSplit=2, topRow defaults to rowSplit=3
+        assertFreezePane(file, 2, 3, 2, 3);
     }
 
     @Test
