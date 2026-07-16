@@ -69,7 +69,7 @@ public abstract class AbstractParameterBuilder<T extends AbstractParameterBuilde
      * @return this builder
      */
     public T head(Consumer<HeadBuilder> headBuilderConsumer) {
-        parameter().setHead(DefaultHeadBuilder.define(headBuilderConsumer));
+        parameter().setHead(toMutableListIfNecessary(DefaultHeadBuilder.define(headBuilderConsumer)));
         return self();
     }
 

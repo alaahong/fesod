@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache.fesod.sheet.testkit.Tags;
+import org.apache.fesod.sheet.write.builder.ExcelWriterSheetBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -215,5 +216,46 @@ class HeadBuilderTest {
         Assertions.assertEquals(Arrays.asList("User Info", "Name"), head.get(1));
         Assertions.assertEquals(Arrays.asList("User Info", "Age"), head.get(2));
         Assertions.assertEquals(Arrays.asList("Others", "Remark"), head.get(3));
+    }
+
+    /**
+     * Verifies that {@code head(Consumer)} stores a deep copy of the list returned by
+     * {@link DefaultHeadBuilder#define}, consistent with {@code head(List)} which calls
+     * {@code toMutableListIfNecessary}. Without the deep copy, modifications made by
+     * {@code ExcelHeadProperty.initHeadRowNumber()} (which pads shorter columns) would
+     * corrupt the original list.
+     */
+    @Test
+    void headConsumer_createsDeepCopy() {
+        // Capture the DefaultHeadBuilder to access its internal list later
+        DefaultHeadBuilder[] captured = new DefaultHeadBuilder[1];
+        Consumer<HeadBuilder> consumer = b -> {
+            captured[0] = (DefaultHeadBuilder) b;
+            b.column("ID").columns("Info", sub -> sub.column("Name").column("Age"));
+        };
+
+        ExcelWriterSheetBuilder builder = new ExcelWriterSheetBuilder();
+        builder.head(consumer);
+
+        // Internal list from the builder (the original reference)
+        List<List<String>> internalList = captured[0].toHead();
+
+        // Stored head from the parameter (should be a deep copy)
+        List<List<String>> storedHead = builder.build().getHead();
+
+        // The outer list and all inner lists must be different objects (deep copy)
+        Assertions.assertNotSame(internalList, storedHead);
+        for (int i = 0; i < internalList.size(); i++) {
+            Assertions.assertNotSame(internalList.get(i), storedHead.get(i));
+        }
+
+        // Verify data integrity
+        Assertions.assertEquals(Arrays.asList("ID"), storedHead.get(0));
+        Assertions.assertEquals(Arrays.asList("Info", "Name"), storedHead.get(1));
+        Assertions.assertEquals(Arrays.asList("Info", "Age"), storedHead.get(2));
+
+        // Modifying the stored head must not affect the internal list
+        storedHead.get(0).add("ID");
+        Assertions.assertEquals(Arrays.asList("ID"), internalList.get(0));
     }
 }
