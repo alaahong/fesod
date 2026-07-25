@@ -60,6 +60,10 @@ public class NumberUtils {
     /**
      * format
      *
+     * <p>This method populates a ThreadLocal cache of {@link DecimalFormat} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
+     *
      * @param num
      * @param contentProperty
      * @return
@@ -254,6 +258,13 @@ public class NumberUtils {
         return decimalFormat;
     }
 
+    /**
+     * Remove the ThreadLocal cache held by this class on the current thread.
+     *
+     * <p>When using {@link #format} outside of Fesod's read/write flow, call this method
+     * (or {@link ThreadLocalCache#removeAll()}) in a {@code finally} block to prevent
+     * ThreadLocal memory leaks in thread-pool environments.
+     */
     public static void removeThreadLocalCache() {
         DECIMAL_FORMAT_THREAD_LOCAL.remove();
     }

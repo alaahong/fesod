@@ -204,6 +204,10 @@ public class DateUtils {
      * <p>
      * yyyy-MM-dd HH:mm:ss
      *
+     * <p>This method populates a ThreadLocal cache of {@link SimpleDateFormat} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
+     *
      * @param date
      * @return
      */
@@ -213,6 +217,10 @@ public class DateUtils {
 
     /**
      * Format date
+     *
+     * <p>This method populates a ThreadLocal cache of {@link SimpleDateFormat} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
      *
      * @param date
      * @param dateFormat
@@ -231,8 +239,13 @@ public class DateUtils {
     /**
      * Format date
      *
+     * <p>This method populates a ThreadLocal cache of {@link DateTimeFormatter} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
+     *
      * @param date
      * @param dateFormat
+     * @param local
      * @return
      */
     public static String format(LocalDateTime date, String dateFormat, Locale local) {
@@ -248,6 +261,10 @@ public class DateUtils {
     /**
      * Format date
      *
+     * <p>This method populates a ThreadLocal cache of {@link DateTimeFormatter} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
+     *
      * @param date
      * @param dateFormat
      * @return
@@ -259,8 +276,13 @@ public class DateUtils {
     /**
      * Format date
      *
+     * <p>This method populates a ThreadLocal cache of {@link DateTimeFormatter} on the current
+     * thread. In thread-pool environments (e.g. web servers), call
+     * {@link ThreadLocalCache#removeAll()} in a {@code finally} block to prevent memory leaks.
+     *
      * @param date
      * @param dateFormat
+     * @param local
      * @return
      */
     public static String format(LocalDate date, String dateFormat, Locale local) {
@@ -586,6 +608,13 @@ public class DateUtils {
         return false;
     }
 
+    /**
+     * Remove all ThreadLocal caches held by this class on the current thread.
+     *
+     * <p>When using {@link #format} outside of Fesod's read/write flow, call this method
+     * (or {@link ThreadLocalCache#removeAll()}) in a {@code finally} block to prevent
+     * ThreadLocal memory leaks in thread-pool environments.
+     */
     public static void removeThreadLocalCache() {
         DATE_THREAD_LOCAL.remove();
         DATE_FORMAT_THREAD_LOCAL.remove();

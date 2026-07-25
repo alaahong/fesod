@@ -588,6 +588,14 @@ public class ClassUtils {
         }
     }
 
+    /**
+     * Remove all ThreadLocal caches held by this class on the current thread.
+     *
+     * <p>When using {@link #declaredFields} or {@link #declaredExcelContentProperty} outside
+     * of Fesod's read/write flow, call this method (or {@link ThreadLocalCache#removeAll()})
+     * in a {@code finally} block to prevent ThreadLocal memory leaks in thread-pool
+     * environments.
+     */
     public static void removeThreadLocalCache() {
         FIELD_THREAD_LOCAL.remove();
         CLASS_CONTENT_THREAD_LOCAL.remove();
