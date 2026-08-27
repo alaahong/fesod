@@ -44,3 +44,14 @@ website/package-lock.json
 **/.cifuzz-corpus/
 **/fuzz_corpus/
 **/resources/**/fuzz/*Inputs/
+
+# Apache release management: local working copies & manual prep artifacts
+release-tools/dist-*-wc/
+release-tools/KEYS_*_wc/
+release-tools/*_wc/
+release-tools/KEYS_zhangzhe.asc
+release-tools/NEW_KEYS_entry.txt
+release-tools/UPDATED_KEYS.final
+release-tools/gen-gpg-key.cmd
+release-tools/svn-update-keys.cmd
+release-tools/commit-*.cmd
