@@ -57,8 +57,7 @@ Git 推送使用 `GITHUB_TOKEN`（Actions 自动提供，无须配置）。
 > 建议先在 fork（如 `alaahong/fesod`）的 Settings → Secrets 配置用于联调，通过后再上官方仓库。
 
 ### 3. GPG 密钥
-签名人必须是发布经理本人的密钥，且其公钥已追加到：
-- https://dist.apache.org/repos/dist/dev/incubator/fesod/KEYS
+签名人必须是发布经理本人的密钥，且其公钥已追加到（KEYS 只在 release 目录维护，单一来源）：
 - https://downloads.apache.org/incubator/fesod/KEYS
 
 将对应私钥（armored）作为 `GPG_PRIVATE_KEY`，口令作为 `GPG_PASSPHRASE`。
