@@ -652,5 +652,27 @@ under the License.
                 <surefire.threadCount>2</surefire.threadCount>
             </properties>
         </profile>
+        <profile>
+            <id>apache-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>source-release-assembly</id>
+                                <configuration>
+                                    <descriptorRefs combine.self="override" />
+                                    <descriptors>
+                                        <descriptor>src/assembly/source-release.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
