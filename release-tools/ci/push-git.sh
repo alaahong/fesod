@@ -9,15 +9,15 @@ source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
 APACHE_REPO="https://x-access-token:${GIT_PUSH_TOKEN}@github.com/apache/fesod.git"
 ORIGIN_REPO="${ORIGIN_REPO:-$(git config --get remote.origin.url || echo '')}"
 
-echo "== create tag ${GIT_TAG} at HEAD (base-branch ${BASE_BRANCH}) =="
-git tag "${GIT_TAG}" HEAD
+echo "== tag ${GIT_TAG} at ${PUSH_TARGET} =="
+git tag "${GIT_TAG}" "${PUSH_TARGET}"
 
 echo "== push tag =="
 git push "${APACHE_REPO}" "${GIT_TAG}"
 
 # create + push the RC branch from the same commit
-echo "== create + push branch ${RC_BRANCH} =="
-git branch -f "${RC_BRANCH}" HEAD
+echo "== create + push branch ${RC_BRANCH} at ${PUSH_TARGET} =="
+git branch -f "${RC_BRANCH}" "${PUSH_TARGET}"
 git push "${APACHE_REPO}" "${RC_BRANCH}"
 
 # best-effort sync to the fork; must not fail the job

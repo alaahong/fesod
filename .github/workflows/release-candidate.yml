@@ -1,7 +1,8 @@
 # Release Candidate publishing workflow (Apache Fesod incubating)
 #
 # Automates the manual RC flow: verification gates -> signed source package ->
-# SVN dist (dev) -> Nexus staging deploy(no close) -> git tag & branch push.
+# SVN dist (dev) -> Nexus staging deploy(no close) -> git tag & branch push ->
+# VOTE email draft. The RC is cut from an exact source commit supplied at trigger.
 #
 # Security: all credentials come from repository secrets, injected as env vars,
 # only live for the job, and must never be echoed (see release-tools/ci docs).
@@ -19,10 +20,9 @@ on:
         description: 'RC round number, e.g. 1'
         required: true
         type: string
-      base-branch:
-        description: 'Base branch to cut the RC from (must already carry the revision bump)'
-        required: false
-        default: 'main'
+      commit-sha:
+        description: 'Exact source commit the RC is cut from (git tag/source archive use this commit)'
+        required: true
         type: string
 
 permissions:
@@ -36,7 +36,9 @@ concurrency:
 env:
   REVISION: ${{ github.event.inputs.revision }}
   RC: ${{ github.event.inputs.rc }}
-  BASE_BRANCH: ${{ github.event.inputs.base-branch }}
+  COMMIT_SHA: ${{ github.event.inputs.commit-sha }}
+  GIT_TAG: ${{ github.event.inputs.revision }}-rc${{ github.event.inputs.rc }}
+  ARTIFACT_DIR: ${{ runner.temp }}/fesod-rc/artifacts
   ASF_USERNAME: ${{ secrets.ASF_USERNAME }}
   ASF_PASSWORD: ${{ secrets.ASF_PASSWORD }}
   GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -49,10 +51,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - name: Checkout base branch
+      - name: Checkout source commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ env.COMMIT_SHA }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,7 +74,7 @@ jobs:
       - name: Generate runtime credentials (settings.xml / subversion / gpg passphrase)
         run: bash release-tools/ci/setup-creds.sh
 
-      - name: Run verification gates
+      - name: Run verification gates (build + tests + license)
         run: bash release-tools/ci/gate-verify.sh
 
       - name: Create signed source package
@@ -84,8 +86,18 @@ jobs:
       - name: Deploy signed artifacts to Nexus staging (no close)
         run: bash release-tools/ci/publish-nexus.sh
 
-      - name: Push RC tag and branch
+      - name: Push RC tag and branch at the source commit
         run: bash release-tools/ci/push-git.sh
+
+      - name: Generate VOTE email draft
+        run: bash release-tools/ci/gen-vote-email.sh
+
+      - name: Upload VOTE email draft
+        uses: actions/upload-artifact@v4
+        with:
+          name: VOTE-${{ env.GIT_TAG }}
+          path: ${{ env.ARTIFACT_DIR }}/VOTE-${{ env.GIT_TAG }}.txt
+          if-no-files-found: error
 
       - name: Print release summary
         if: always()

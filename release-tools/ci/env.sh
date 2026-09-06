@@ -10,6 +10,7 @@ set -euo pipefail
 # ---- inputs (injected by the workflow, required) ----
 : "${REVISION:?REVISION is required}"          # e.g. 2.1.0-incubating
 : "${RC:?RC is required}"                      # e.g. 1
+: "${COMMIT_SHA:?COMMIT_SHA is required}"      # exact source commit the RC is cut from
 BASE_BRANCH="${BASE_BRANCH:-main}"
 
 # ---- derived names ----
@@ -36,6 +37,9 @@ if git cat-file -e "${GIT_TAG}^{commit}" 2>/dev/null; then
   PREV_TAG="${GIT_TAG}"
 fi
 
+# The exact commit (already checked out) from which tag/branch and source are cut.
+PUSH_TARGET="${COMMIT_SHA}"
+
 export REVISION RC BASE_BRANCH PROJECT_SHORT RC_BRANCH GIT_TAG
 export PKG_TARBALL SVN_DIST_URL SVN_DIR_NAME SVN_RC_URL
-export WORK_ROOT CREDS_DIR ARTIFACT_DIR GNUPGHOME GPG_PASSFILE PREV_TAG
+export WORK_ROOT CREDS_DIR ARTIFACT_DIR GNUPGHOME GPG_PASSFILE PREV_TAG PUSH_TARGET COMMIT_SHA
